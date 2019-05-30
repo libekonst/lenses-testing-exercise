@@ -2,9 +2,7 @@ describe.only("Data Protection", () => {
   beforeEach(() => {
     cy.login();
     cy.get(".navbar", { timeout: 10000 }).should("exist");
-
-    // Navigate to the policies route.
-    cy.toPolicies();
+    toPolicies();
   });
 
   context("Navigation", () => {
@@ -35,32 +33,17 @@ describe.only("Data Protection", () => {
   });
 
   context("Creation", () => {
-    // Tries to find a remnant test policy from a previous test run
-    // and deletes it, to provide a clean start for the 'create new' test.
-    it("Cleans up after previous test runs", () => {
-      // Try to find a remaining test policy.
+    it("Creates a new policy", () => {
+      // Initial clean up step that finds and deletes a remnant test policy.
+      // Search for a remaining test policy.
       cy.get(".table-search input").type("TestLenses", { force: true });
 
       // If found, delete it.
-      cy.get("tr").then($row => {
-        if ($row.text().includes("TestLenses")) {
-          // Open the delete dialog.
-          cy.get("tr a.text-danger").click();
+      cy.get("tr").then(
+        $row => $row.text().includes("TestLenses") && deletePolicy("TestLenses")
+      );
 
-          // Confirm that the test policy is about to be deleted.
-          cy.get(".modal-body").contains("TestLenses");
-          cy.get(".modal-body").contains("will be deleted");
-
-          // Delete.
-          cy.get("button")
-            .contains("Delete")
-            .click();
-        }
-      });
-    });
-
-    it("Creates a new policy", () => {
-      // Attempt to open the new policy form.
+      // Attempt to open the create policy form.
       cy.get(".overview-policy-screen button")
         .contains("New policy")
         .click();
@@ -76,7 +59,7 @@ describe.only("Data Protection", () => {
       cy.get("button.btn-policy").click();
 
       // Cypress awaits for async processes to finish before proceeding to other commands.
-      // Issue the wait command to wait for the modal to close and be able to type in the search field.
+      // Issue the wait command to wait for the modal to close so that it can interact with other elements.
       cy.wait(1000);
 
       // Search for the test policy.
@@ -95,21 +78,8 @@ describe.only("Data Protection", () => {
         .contains("TestLenses")
         .should("exist");
 
-      // Open the delete dialog.
-      cy.get("tr a.text-danger").click();
-
-      // Confirm that the test policy is about to be deleted.
-      cy.get(".modal-body").contains("TestLenses");
-      cy.get(".modal-body").contains("will be deleted");
-
-      // Delete.
-      cy.get("button")
-        .contains("Delete")
-        .click();
-
-      // Cypress awaits for async processes to finish before proceeding to other commands.
-      // Issue the wait command to wait for the modal to close and be able to type in the search field.
-      cy.wait(1000);
+      // Delete it.
+      deletePolicy("TestLenses");
 
       // Search for the deleted policy.
       cy.get(".table-search input").type("TestLenses", { force: true });
@@ -121,3 +91,31 @@ describe.only("Data Protection", () => {
     });
   });
 });
+
+// ----- UTILS -----
+
+/** Navigates to the Policies route */
+function toPolicies() {
+  cy.get('.navbar a[href="/dataprotection/policies"]')
+    .should("contain", "POLICIES")
+    .click();
+}
+
+/** Opens the delete policy dialog and deletes the policy. */
+function deletePolicy(policy) {
+  // Open the delete dialog.
+  cy.get("tr a.text-danger").click();
+
+  // Confirm that the test policy is about to be deleted.
+  cy.get(".modal-body").contains(policy);
+  cy.get(".modal-body").contains("will be deleted");
+
+  // Delete.
+  cy.get("button")
+    .contains("Delete")
+    .click();
+
+  // Cypress awaits for async processes to finish before proceeding to other commands.
+  // Issue the wait command to wait for the modal to close so that it can interact with other elements.
+  cy.wait(1000);
+}

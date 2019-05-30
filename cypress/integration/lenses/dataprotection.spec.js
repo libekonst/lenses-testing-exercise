@@ -2,6 +2,7 @@ describe.only("Data Protection", () => {
   beforeEach(() => {
     cy.login();
     cy.get(".navbar", { timeout: 10000 }).should("exist");
+
     // Navigate to the policies route.
     cy.toPolicies();
   });
@@ -34,63 +35,86 @@ describe.only("Data Protection", () => {
   });
 
   context("Creation", () => {
+    // Tries to find a remnant test policy from a previous test run
+    // and deletes it, to provide a clean start for the 'create new' test.
+    it("Cleans up after previous test runs", () => {
+      // Try to find a remaining test policy.
+      cy.get(".table-search input").type("TestLenses", { force: true });
+
+      // If found, delete it.
+      cy.get("tr").then($row => {
+        if ($row.text().includes("TestLenses")) {
+          // Open the delete dialog.
+          cy.get("tr a.text-danger").click();
+
+          // Confirm that the test policy is about to be deleted.
+          cy.get(".modal-body").contains("TestLenses");
+          cy.get(".modal-body").contains("will be deleted");
+
+          // Delete.
+          cy.get("button")
+            .contains("Delete")
+            .click();
+        }
+      });
+    });
+
     it("Creates a new policy", () => {
-      // cy.get('.navbar a[href="/dataprotection/policies"]')
-      //   .should("contain", "POLICIES")
-      //   .click();
+      // Attempt to open the new policy form.
       cy.get(".overview-policy-screen button")
         .contains("New policy")
         .click();
+
+      // Fill in the fields.
       cy.get("input#name").type("TestLenses");
       cy.get("select#obfuscation").select("All");
       cy.get("select#impactType").select("HIGH");
-      // cy.get(".lenses-creatable-autocomplete__indicators").click();
-      // cy.get("#react-select-4-option-3").click();
-      // cy.get("#category").focus();
       cy.get("#react-select-2-input").type("PII{enter}", { force: true });
       cy.get(".react-tagsinput-input input").type("test-tag{enter}");
+
+      // Submit.
       cy.get("button.btn-policy").click();
 
       // Cypress awaits for async processes to finish before proceeding to other commands.
-      // Issue another command to wait until the request is finished before ending the test.
-      cy.get("div");
-    });
+      // Issue the wait command to wait for the modal to close and be able to type in the search field.
+      cy.wait(1000);
 
-    it("Finds the new test policy", () => {
-      // cy.get('.navbar a[href="/dataprotection/policies"]')
-      //   .should("contain", "POLICIES")
-      //   .click();
+      // Search for the test policy.
       cy.get(".table-search input").type("TestLenses", { force: true });
+
+      // Assert that it exists.
       cy.get("tr")
         .contains("TestLenses")
         .should("exist");
     });
 
     it("Deletes the test policy", () => {
-      // cy.get('.navbar a[href="/dataprotection/policies"]')
-      //   .should("contain", "POLICIES")
-      //   .click();
+      // Find the test policy.
       cy.get(".table-search input").type("TestLenses", { force: true });
       cy.get("tr")
         .contains("TestLenses")
         .should("exist");
-      cy.get("a.text-danger").click();
+
+      // Open the delete dialog.
+      cy.get("tr a.text-danger").click();
+
+      // Confirm that the test policy is about to be deleted.
       cy.get(".modal-body").contains("TestLenses");
       cy.get(".modal-body").contains("will be deleted");
+
+      // Delete.
       cy.get("button")
         .contains("Delete")
         .click();
 
       // Cypress awaits for async processes to finish before proceeding to other commands.
-      // Issue another command to wait until the request is finished before ending the test.
-      cy.get("div");
-    });
+      // Issue the wait command to wait for the modal to close and be able to type in the search field.
+      cy.wait(1000);
 
-    it("Confirms that the test policy is deleted", () => {
-      // cy.get('.navbar a[href="/dataprotection/policies"]')
-      //   .should("contain", "POLICIES")
-      //   .click();
+      // Search for the deleted policy.
       cy.get(".table-search input").type("TestLenses", { force: true });
+
+      // Assert it was deleted.
       cy.get("tr")
         .contains("TestLenses")
         .should("not.exist");

@@ -26,12 +26,12 @@ submit button, instead of calling `cy.get('form').submit()`, to mimic the app's 
 fills the form inputs and tries to click submit.
 
 
-Enhancements:
+Further Improvements:
 
-- Policy check. Check that the requested policy is created, i.e. the test policy, by querying all its properties and not just its name.
-Similarly, the deletePolicy() function could query and delete a policy by all its properties as well.
+- Improve policy checking. Check that the requested policy is created by querying all its properties, not just its name.
+Similarly, the deletePolicy() function could query and delete a policy by other properties as well.
 
-- Automated form filling. Write a function that takes a form type, such as "New Policy", as well an options object and automatically
+- Automate form filling. Write a function that takes a form type, such as "New Policy", as well an options object and automatically
 fills the form input fields.
 
 - Use safer selectors. Some selectors now rely on specific html structure, class names or text content. 
